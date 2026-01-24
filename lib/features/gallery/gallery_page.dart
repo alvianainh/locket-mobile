@@ -43,7 +43,7 @@ class _GalleryPageState extends State<GalleryPage> {
                           style: TextStyle(
                             fontFamily: 'Poppins',
                             fontSize: 26,
-                            fontWeight: FontWeight.bold, // gunakan weight 700 kalau mau bold
+                            fontWeight: FontWeight.bold,
                             color: Color(0xFFD76C82),
                           ),
                         ),
@@ -58,7 +58,6 @@ class _GalleryPageState extends State<GalleryPage> {
                   ],
                 ),
               ),
-              // Gallery grid / empty state
               Expanded(
                 child: photos.isEmpty
                     ? _EmptyState()
@@ -92,7 +91,6 @@ class _GalleryPageState extends State<GalleryPage> {
   }
 }
 
-// EmptyState aesthetic
 class _EmptyState extends StatelessWidget {
   const _EmptyState();
 
@@ -116,7 +114,7 @@ class _EmptyState extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 20,
-              fontWeight: FontWeight.w600, // semi-bold
+              fontWeight: FontWeight.w600, 
               color: Color(0xFFEF8DA8),
             ),
           ),
@@ -126,7 +124,7 @@ class _EmptyState extends StatelessWidget {
             style: TextStyle(
               fontFamily: 'Poppins',
               fontSize: 15,
-              fontWeight: FontWeight.w600, // semi-bold
+              fontWeight: FontWeight.w600,
               color: Color(0xFF5F8B4C),
             ),
           ),

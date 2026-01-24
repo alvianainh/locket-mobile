@@ -104,7 +104,6 @@ class LoginPage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          // Login Button
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -134,7 +133,7 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Footer / register
+                  // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -147,7 +146,7 @@ class LoginPage extends StatelessWidget {
                       ),
                       GestureDetector(
                         onTap: () {
-                          // navigasi ke halaman register kalau ada
+                          Navigator.pushNamed(context, AppRoutes.register);
                         },
                         child: Text(
                           'Daftar',
