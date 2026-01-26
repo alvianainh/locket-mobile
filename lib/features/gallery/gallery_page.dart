@@ -1,7 +1,9 @@
 // gallery_page.dart
 import 'package:flutter/material.dart';
 import '../../routes/app_routes.dart';
-import '../../data/photo_store.dart';
+import '../../models/photo.dart';
+import '../../core/storage/secure_storage.dart';
+import 'gallery_service.dart';
 import 'photo_card.dart';
 
 class GalleryPage extends StatefulWidget {
@@ -12,10 +14,44 @@ class GalleryPage extends StatefulWidget {
 }
 
 class _GalleryPageState extends State<GalleryPage> {
+  List<Photo> photos = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPhotos();
+  }
+
+  Future<void> fetchPhotos() async {
+    try {
+      final token = await SecureStorage.getToken();
+
+      debugPrint('TOKEN: $token');
+
+      if (token == null) {
+        debugPrint('TOKEN NULL');
+        setState(() => isLoading = false);
+        return;
+      }
+
+      final result = await PhotoService.fetchPhotos(token);
+
+      debugPrint('TOTAL PHOTO: ${result.length}'); // 🔥
+
+      setState(() {
+        photos = result;
+        isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Fetch photos error: $e');
+      setState(() => isLoading = false);
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    final photos = PhotoStore.photos;
-
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -28,16 +64,16 @@ class _GalleryPageState extends State<GalleryPage> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
+              // HEADER
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-                      children: [
-                        const Icon(Icons.lock, size: 32, color: Color(0xFFD76C82)),
-                        const SizedBox(width: 8),
+                      children: const [
+                        Icon(Icons.lock, size: 32, color: Color(0xFFD76C82)),
+                        SizedBox(width: 8),
                         Text(
                           'My Locket',
                           style: TextStyle(
@@ -52,28 +88,39 @@ class _GalleryPageState extends State<GalleryPage> {
                     IconButton(
                       icon: const Icon(Icons.logout, color: Color(0xFF5F8B4C)),
                       onPressed: () {
-                        Navigator.pushReplacementNamed(context, AppRoutes.login);
+                        Navigator.pushReplacementNamed(
+                          context,
+                          AppRoutes.login,
+                        );
                       },
                     ),
                   ],
                 ),
               ),
+
+              // CONTENT
               Expanded(
-                child: photos.isEmpty
-                    ? _EmptyState()
-                    : GridView.builder(
-                        padding: const EdgeInsets.all(12),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 1.0,
-                        ),
-                        itemCount: photos.length,
-                        itemBuilder: (context, index) {
-                          return PhotoCard(photo: photos[index]);
-                        },
-                      ),
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : photos.isEmpty
+                        ? _EmptyState()
+                        : GridView.builder(
+                            padding: const EdgeInsets.all(12),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                            ),
+                            itemCount: photos.length,
+                            itemBuilder: (context, index) {
+                              return PhotoCard(
+                                photo: photos[index],
+                                allPhotos: photos,
+                                initialIndex: index,
+                              );
+                            },
+                          ),
               ),
             ],
           ),
@@ -83,48 +130,29 @@ class _GalleryPageState extends State<GalleryPage> {
         backgroundColor: const Color(0xFFD76C82),
         onPressed: () async {
           await Navigator.pushNamed(context, AppRoutes.camera);
-          setState(() {});
+          fetchPhotos();
         },
         child: const Icon(Icons.camera_alt, color: Colors.white),
       ),
     );
   }
-}
 
-class _EmptyState extends StatelessWidget {
-  const _EmptyState();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _EmptyState() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFEF8DA8).withOpacity(0.2),
-            ),
-            child: const Icon(Icons.photo_camera_outlined, size: 80, color: Color(0xFFEF8DA8)),
+        children: const [
+          Icon(
+            Icons.photo_library_outlined,
+            size: 80,
+            color: Color(0xFFD76C82),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 12),
           Text(
             'Belum ada foto',
             style: TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 20,
-              fontWeight: FontWeight.w600, 
-              color: Color(0xFFEF8DA8),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Ambil momen pertamamu',
-            style: TextStyle(
-              fontFamily: 'Poppins',
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
+              fontSize: 16,
               color: Color(0xFF5F8B4C),
             ),
           ),
@@ -133,5 +161,7 @@ class _EmptyState extends StatelessWidget {
     );
   }
 }
+
+
 
 

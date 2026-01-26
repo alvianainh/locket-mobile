@@ -24,13 +24,60 @@ import '../storage/secure_storage.dart';
 //   }
 // }
 
-class AuthService {
-  Future<void> login(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 500));
-    // pura-pura login sukses
-  }
 
-  Future<void> logout() async {
-    // kosong dulu
+
+
+
+
+// class AuthService {
+//   Future<void> login(String email, String password) async {
+//     await Future.delayed(const Duration(milliseconds: 500));
+//   }
+
+//   Future<void> logout() async {
+//   }
+// }
+
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../storage/secure_storage.dart';
+import '../config/api_config.dart';
+
+class AuthService {
+  static Future<String> login({
+    required String email,
+    required String password,
+  }) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/auth/login');
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: jsonEncode({
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      final token = data['access_token'];
+
+      await SecureStorage.saveToken(token);
+
+      final saved = await SecureStorage.getToken();
+      print('TOKEN SAVED: $saved');
+
+      return token;
+    } else {
+      final error = jsonDecode(response.body);
+      throw Exception(error['detail'] ?? 'Login gagal');
+    }
   }
 }
+
+

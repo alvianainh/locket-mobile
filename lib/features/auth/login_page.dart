@@ -3,9 +3,55 @@ import 'package:flutter/material.dart';
 import '../../core/auth/auth_service.dart';
 import '../../routes/app_routes.dart';
 
-
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+ 
+  bool isPasswordHidden = true;
+  bool isLoading = false;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() => isLoading = true);
+
+    try {
+      final token = await AuthService.login(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      debugPrint('LOGIN TOKEN: $token');
+
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.gallery);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e.toString(),
+            style: const TextStyle(fontFamily: 'Poppins'),
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +85,7 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  Text(
+                  const Text(
                     'Welcome Back!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -50,7 +96,7 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     'Login untuk melanjutkan',
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -70,12 +116,19 @@ class LoginPage extends StatelessWidget {
                       padding: const EdgeInsets.all(24),
                       child: Column(
                         children: [
-
                           TextField(
+                            controller: emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                              color: Color(0xFF5F8B4C),
+                            ),
                             decoration: InputDecoration(
-                              labelText: 'Email',
-                              labelStyle: TextStyle(
+                              hintText: 'Email',
+                              hintStyle: const TextStyle(
                                 fontFamily: 'Poppins',
+                                fontSize: 16,
                                 color: Color(0xFF5F8B4C),
                               ),
                               border: OutlineInputBorder(
@@ -84,15 +137,26 @@ class LoginPage extends StatelessWidget {
                               ),
                               filled: true,
                               fillColor: const Color(0xFFFFE0F0).withOpacity(0.3),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 18,
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),
                           TextField(
-                            obscureText: true,
+                            controller: passwordController,
+                            obscureText: isPasswordHidden,
+                            style: const TextStyle(
+                              fontFamily: 'Poppins',
+                              fontSize: 16,
+                              color: Color(0xFF5F8B4C),
+                            ),
                             decoration: InputDecoration(
-                              labelText: 'Password',
-                              labelStyle: TextStyle(
+                              hintText: 'Password',
+                              hintStyle: const TextStyle(
                                 fontFamily: 'Poppins',
+                                fontSize: 16,
                                 color: Color(0xFF5F8B4C),
                               ),
                               border: OutlineInputBorder(
@@ -101,6 +165,24 @@ class LoginPage extends StatelessWidget {
                               ),
                               filled: true,
                               fillColor: const Color(0xFFFFE0F0).withOpacity(0.3),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 18,
+                              ),
+
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  isPasswordHidden
+                                      ? Icons.visibility_off_rounded
+                                      : Icons.visibility_rounded,
+                                  color: const Color(0xFF5F8B4C),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    isPasswordHidden = !isPasswordHidden;
+                                  });
+                                },
+                              ),
                             ),
                           ),
                           const SizedBox(height: 24),
@@ -109,17 +191,16 @@ class LoginPage extends StatelessWidget {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFD76C82),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              onPressed: () {
-                                Navigator.pushReplacementNamed(context, AppRoutes.gallery);
-                              },
-                              child: const Text(
-                                'Login',
-                                style: TextStyle(
+                              onPressed: isLoading ? null : _handleLogin,
+                              child: Text(
+                                isLoading ? 'Loading...' : 'Login',
+                                style: const TextStyle(
                                   fontFamily: 'Poppins',
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -133,11 +214,10 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         'Belum punya akun? ',
                         style: TextStyle(
                           fontFamily: 'Poppins',
@@ -148,7 +228,7 @@ class LoginPage extends StatelessWidget {
                         onTap: () {
                           Navigator.pushNamed(context, AppRoutes.register);
                         },
-                        child: Text(
+                        child: const Text(
                           'Daftar',
                           style: TextStyle(
                             fontFamily: 'Poppins',

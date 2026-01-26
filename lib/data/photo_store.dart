@@ -16,6 +16,8 @@ class PhotoStore {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         imageUrl: imageUrl,
         caption: caption,
+        description: '',    
+        isFavorite: false,  
       ),
     );
   }
